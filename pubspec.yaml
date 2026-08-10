@@ -54,4 +54,3 @@ flutter:
   assets:
     - assets/data/default_radios.json
     - assets/images/
-    - assets/images/app_logo.png
