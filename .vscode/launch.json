@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "HepsiRadyo (Supabase Bağlı)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main.dart",
+      "args": [
+        "--dart-define",
+        "SUPABASE_URL=https://stcgvfwyzojgndricgob.supabase.co",
+        "--dart-define",
+        "SUPABASE_ANON_KEY=sb_publishable_XpKQG6_gqc_MAEVKby98Fg_g0yABD5q"
+      ]
+    }
+  ]
+}

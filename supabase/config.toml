@@ -1,0 +1,5 @@
+# Supabase Edge Functions Configuration
+project_id = "hepsiradyo"
+
+[functions.get-stream-metadata]
+verify_jwt = false
