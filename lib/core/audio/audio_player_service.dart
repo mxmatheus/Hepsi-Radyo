@@ -7,6 +7,7 @@ import 'package:just_audio/just_audio.dart';
 import '../../shared/models/radio_model.dart';
 import '../network/image_url_helper.dart';
 import '../network/supabase_client.dart';
+import '../services/gamification_service.dart';
 import '../storage/hive_storage.dart';
 import 'audio_player_handler.dart';
 
@@ -53,13 +54,14 @@ class PlayerStateModel {
 }
 
 class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
+  final Ref _ref;
   HepsiRadyoAudioHandler? _audioHandler;
   Timer? _metadataTimer;
   Timer? _sleepTimer;
   Timer? _connectionTimeoutTimer;
   Timer? _listenTimer;
 
-  AudioPlayerNotifier() : super(_initialState()) {
+  AudioPlayerNotifier(this._ref) : super(_initialState()) {
     _initAudioService();
   }
 
@@ -114,18 +116,7 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
     _listenTimer?.cancel();
     _listenTimer = Timer.periodic(const Duration(minutes: 1), (timer) async {
       if (state.isPlaying) {
-        await HiveStorage.addListenMinutes(1);
-        final totalMin = HiveStorage.getListenMinutes();
-        final unlocked = HiveStorage.getUnlockedBadges();
-        if (totalMin >= 1 && !unlocked.contains('first_listen')) {
-          await HiveStorage.unlockBadge('first_listen');
-        }
-        if (totalMin >= 60 && !unlocked.contains('music_lover_1h')) {
-          await HiveStorage.unlockBadge('music_lover_1h');
-        }
-        if (totalMin >= 600 && !unlocked.contains('music_lover_10h')) {
-          await HiveStorage.unlockBadge('music_lover_10h');
-        }
+        await _ref.read(gamificationProvider.notifier).addListenMinutes(1);
       }
     });
   }
@@ -155,19 +146,10 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
     await HiveStorage.incrementClickCount(radio.id);
     _trackRadioClick(radio.id);
 
-    // Check Radio Count Badges
+    // Check Radio Count Badges & Notify Riverpod State
     final recents = HiveStorage.getRecentlyPlayed();
     final uniqueCount = recents.map((e) => e.id).toSet().length;
-    final unlocked = HiveStorage.getUnlockedBadges();
-    if (uniqueCount >= 1 && !unlocked.contains('first_listen')) {
-      await HiveStorage.unlockBadge('first_listen');
-    }
-    if (uniqueCount >= 5 && !unlocked.contains('explorer_5')) {
-      await HiveStorage.unlockBadge('explorer_5');
-    }
-    if (uniqueCount >= 20 && !unlocked.contains('explorer_20')) {
-      await HiveStorage.unlockBadge('explorer_20');
-    }
+    await _ref.read(gamificationProvider.notifier).checkRadioListenCount(uniqueCount);
 
     if (_audioHandler != null) {
       await _audioHandler!.playRadio(
@@ -375,5 +357,5 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
 }
 
 final playerProvider = StateNotifierProvider<AudioPlayerNotifier, PlayerStateModel>((ref) {
-  return AudioPlayerNotifier();
+  return AudioPlayerNotifier(ref);
 });

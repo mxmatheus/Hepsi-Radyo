@@ -104,11 +104,13 @@ class _FullScreenPlayerState extends ConsumerState<FullScreenPlayer> {
             ],
           ),
         ),
-        child: Column(
-          children: [
-            // Header Top Bar
-            Padding(
-              padding: EdgeInsets.fromLTRB(AppTokens.padMd, topPadding + 14, AppTokens.padMd, 8),
+        child: SafeArea(
+          bottom: false,
+          child: Column(
+            children: [
+              // Header Top Bar
+              Padding(
+                padding: const EdgeInsets.fromLTRB(AppTokens.padMd, 24, AppTokens.padMd, 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -406,6 +408,7 @@ class _FullScreenPlayerState extends ConsumerState<FullScreenPlayer> {
             ],
           ),
         ),
+      ),
     );
   }
 

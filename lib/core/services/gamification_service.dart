@@ -50,31 +50,44 @@ class GamificationNotifier extends StateNotifier<List<BadgeModel>> {
     loadBadges();
   }
 
-  void loadBadges() {
-    final unlockedIds = HiveStorage.getUnlockedBadges();
+  void loadBadges() async {
+    final recents = HiveStorage.getRecentlyPlayed();
+    final uniqueCount = recents.map((e) => e.id).toSet().length;
+    final totalMin = HiveStorage.getListenMinutes();
+    final unlockedIds = HiveStorage.getUnlockedBadges().toSet();
+
+    if (uniqueCount >= 1) {
+      unlockedIds.add('first_listen');
+      await HiveStorage.unlockBadge('first_listen');
+    }
+    if (uniqueCount >= 5) {
+      unlockedIds.add('explorer_5');
+      await HiveStorage.unlockBadge('explorer_5');
+    }
+    if (uniqueCount >= 20) {
+      unlockedIds.add('explorer_20');
+      await HiveStorage.unlockBadge('explorer_20');
+    }
+    if (totalMin >= 60) {
+      unlockedIds.add('music_lover_1h');
+      await HiveStorage.unlockBadge('music_lover_1h');
+    }
+    if (totalMin >= 600) {
+      unlockedIds.add('music_lover_10h');
+      await HiveStorage.unlockBadge('music_lover_10h');
+    }
+
     state = defaultBadgesList.map((b) {
       return b.copyWith(isUnlocked: unlockedIds.contains(b.id));
     }).toList();
   }
 
   Future<void> checkRadioListenCount(int uniqueRadiosCount) async {
-    for (var b in state) {
-      if (!b.isUnlocked && b.requiredMetric == 'radio_count' && uniqueRadiosCount >= b.requiredValue) {
-        await HiveStorage.unlockBadge(b.id);
-      }
-    }
     loadBadges();
   }
 
   Future<void> addListenMinutes(int minutes) async {
     await HiveStorage.addListenMinutes(minutes);
-    final totalMin = HiveStorage.getListenMinutes();
-
-    for (var b in state) {
-      if (!b.isUnlocked && b.requiredMetric == 'listen_minutes' && totalMin >= b.requiredValue) {
-        await HiveStorage.unlockBadge(b.id);
-      }
-    }
     loadBadges();
   }
 }
