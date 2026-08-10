@@ -25,7 +25,9 @@ class ImageUrlHelper {
       'tarsusfm.com.tr',
       'radyo9.com',
       'radio5.com.tr',
-      'turkuradyo.info'
+      'turkuradyo.info',
+      'palstation106.com',
+      'palstation.com'
     ];
 
     if (brokenDomains.any((domain) => url.contains(domain))) {
