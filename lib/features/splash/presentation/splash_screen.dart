@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/router/app_router.dart';
+import '../../../core/storage/hive_storage.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
 
@@ -19,7 +20,15 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
+    _preloadData();
     _startLoadingAnimation();
+  }
+
+  Future<void> _preloadData() async {
+    final cached = HiveStorage.getCachedRadios();
+    if (cached.isEmpty) {
+      await HiveStorage.loadDefaultAssetRadios();
+    }
   }
 
   void _startLoadingAnimation() {

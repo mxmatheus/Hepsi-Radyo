@@ -89,6 +89,8 @@ class _FullScreenPlayerState extends ConsumerState<FullScreenPlayer> {
 
     final songTitle = isActualSong ? rawSongTitle!.trim() : 'Canlı Yayın';
 
+    final topPadding = MediaQuery.of(context).padding.top;
+
     return Scaffold(
       body: AnimatedContainer(
         duration: const Duration(milliseconds: 600),
@@ -102,50 +104,48 @@ class _FullScreenPlayerState extends ConsumerState<FullScreenPlayer> {
             ],
           ),
         ),
-        child: SafeArea(
-          bottom: false,
-          child: Column(
-            children: [
-              // Header Top Bar
-              Padding(
-                padding: const EdgeInsets.fromLTRB(AppTokens.padMd, 12, AppTokens.padMd, 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    IconButton(
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 34, color: Colors.white),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                    Column(
-                      children: [
-                        const Text(
-                          'ŞU AN ÇALINIYOR',
-                          style: TextStyle(
-                            color: AppColors.goldHighlight,
-                            letterSpacing: 2.0,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 11,
-                          ),
+        child: Column(
+          children: [
+            // Header Top Bar
+            Padding(
+              padding: EdgeInsets.fromLTRB(AppTokens.padMd, topPadding + 14, AppTokens.padMd, 8),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 34, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                  Column(
+                    children: [
+                      const Text(
+                        'ŞU AN ÇALINIYOR',
+                        style: TextStyle(
+                          color: AppColors.goldHighlight,
+                          letterSpacing: 2.0,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 11,
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          radio.city ?? 'Türkiye Canlı',
-                          style: const TextStyle(color: Colors.white70, fontSize: 12),
-                        ),
-                      ],
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                        color: isFav ? AppColors.wineRedAccent : Colors.white,
                       ),
-                      onPressed: () {
-                        ref.read(favoritesProvider.notifier).toggleFavorite(radio.id);
-                      },
+                      const SizedBox(height: 2),
+                      Text(
+                        radio.city ?? 'Türkiye Canlı',
+                        style: const TextStyle(color: Colors.white70, fontSize: 12),
+                      ),
+                    ],
+                  ),
+                  IconButton(
+                    icon: Icon(
+                      isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                      color: isFav ? AppColors.wineRedAccent : Colors.white,
                     ),
-                  ],
-                ),
+                    onPressed: () {
+                      ref.read(favoritesProvider.notifier).toggleFavorite(radio.id);
+                    },
+                  ),
+                ],
               ),
+            ),
 
               const Spacer(),
 
@@ -406,7 +406,6 @@ class _FullScreenPlayerState extends ConsumerState<FullScreenPlayer> {
             ],
           ),
         ),
-      ),
     );
   }
 

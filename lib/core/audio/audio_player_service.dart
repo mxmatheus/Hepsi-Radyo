@@ -57,6 +57,7 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
   Timer? _metadataTimer;
   Timer? _sleepTimer;
   Timer? _connectionTimeoutTimer;
+  Timer? _listenTimer;
 
   AudioPlayerNotifier() : super(_initialState()) {
     _initAudioService();
@@ -96,6 +97,9 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
 
         if (isPlaying) {
           _connectionTimeoutTimer?.cancel();
+          _startListenTimer();
+        } else {
+          _listenTimer?.cancel();
         }
 
         state = state.copyWith(
@@ -104,6 +108,26 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
         );
       });
     } catch (_) {}
+  }
+
+  void _startListenTimer() {
+    _listenTimer?.cancel();
+    _listenTimer = Timer.periodic(const Duration(minutes: 1), (timer) async {
+      if (state.isPlaying) {
+        await HiveStorage.addListenMinutes(1);
+        final totalMin = HiveStorage.getListenMinutes();
+        final unlocked = HiveStorage.getUnlockedBadges();
+        if (totalMin >= 1 && !unlocked.contains('first_listen')) {
+          await HiveStorage.unlockBadge('first_listen');
+        }
+        if (totalMin >= 60 && !unlocked.contains('music_lover_1h')) {
+          await HiveStorage.unlockBadge('music_lover_1h');
+        }
+        if (totalMin >= 600 && !unlocked.contains('music_lover_10h')) {
+          await HiveStorage.unlockBadge('music_lover_10h');
+        }
+      }
+    });
   }
 
   Future<void> playRadio(RadioModel radio) async {
@@ -130,6 +154,20 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
     await HiveStorage.addRecentlyPlayed(radio);
     await HiveStorage.incrementClickCount(radio.id);
     _trackRadioClick(radio.id);
+
+    // Check Radio Count Badges
+    final recents = HiveStorage.getRecentlyPlayed();
+    final uniqueCount = recents.map((e) => e.id).toSet().length;
+    final unlocked = HiveStorage.getUnlockedBadges();
+    if (uniqueCount >= 1 && !unlocked.contains('first_listen')) {
+      await HiveStorage.unlockBadge('first_listen');
+    }
+    if (uniqueCount >= 5 && !unlocked.contains('explorer_5')) {
+      await HiveStorage.unlockBadge('explorer_5');
+    }
+    if (uniqueCount >= 20 && !unlocked.contains('explorer_20')) {
+      await HiveStorage.unlockBadge('explorer_20');
+    }
 
     if (_audioHandler != null) {
       await _audioHandler!.playRadio(
