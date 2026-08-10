@@ -160,6 +160,23 @@ class HiveStorage {
     await Hive.box(boxSettings).put('sleep_timer_default', minutes);
   }
 
+  // Last Played Radio Persistence
+  static RadioModel? getLastPlayedRadio() {
+    if (!Hive.isBoxOpen(boxSettings)) return null;
+    final data = Hive.box(boxSettings).get('last_played_radio');
+    if (data != null) {
+      try {
+        return RadioModel.fromJson(Map<String, dynamic>.from(data));
+      } catch (_) {}
+    }
+    return null;
+  }
+
+  static Future<void> saveLastPlayedRadio(RadioModel radio) async {
+    if (!Hive.isBoxOpen(boxSettings)) return;
+    await Hive.box(boxSettings).put('last_played_radio', radio.toJson());
+  }
+
   // Gamification Metrics
   static int getListenMinutes() {
     if (!Hive.isBoxOpen(boxBadges)) return 0;

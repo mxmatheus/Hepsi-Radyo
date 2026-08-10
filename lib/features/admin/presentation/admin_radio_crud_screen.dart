@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:uuid/uuid.dart';
+import '../../../core/network/supabase_client.dart';
 import '../../../core/storage/hive_storage.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
@@ -62,6 +63,13 @@ class _AdminRadioCrudScreenState extends State<AdminRadioCrudScreen> {
         updatedList.insert(0, radio);
       }
       await HiveStorage.cacheRadios(updatedList);
+
+      // Sync to Supabase Database
+      if (SupabaseService.isInitialized && SupabaseService.client != null) {
+        try {
+          await SupabaseService.client!.from('radios').upsert(radio.toJson());
+        } catch (_) {}
+      }
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

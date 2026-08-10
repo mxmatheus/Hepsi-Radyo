@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -31,6 +32,8 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   List<RadioModel> _filteredRadios = [];
   List<RadioModel> _recentlyPlayed = [];
   String _searchQuery = '';
+  int _currentPage = 1;
+  static const int _itemsPerPage = 20;
 
   final List<BannerModel> _sampleBanners = [
     BannerModel(
@@ -96,11 +99,17 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     }
 
     final recents = HiveStorage.getRecentlyPlayed();
+
+    // Random shuffle radios per app session so users discover new stations across pages
+    final shuffled = List<RadioModel>.from(cached);
+    shuffled.shuffle(Random(42));
+
     if (mounted) {
       setState(() {
-        _radios = cached;
-        _filteredRadios = cached;
+        _radios = shuffled;
+        _filteredRadios = shuffled;
         _recentlyPlayed = recents;
+        _currentPage = 1;
       });
     }
   }
@@ -121,6 +130,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   void _onSearchChanged(String query) {
     setState(() {
       _searchQuery = query;
+      _currentPage = 1;
       if (query.isEmpty) {
         _filteredRadios = _radios;
       } else {
@@ -145,6 +155,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final totalPages = (_filteredRadios.isEmpty) ? 1 : (_filteredRadios.length / _itemsPerPage).ceil();
+    final safePage = _currentPage.clamp(1, totalPages);
+    final startIndex = (safePage - 1) * _itemsPerPage;
+    final endIndex = (startIndex + _itemsPerPage < _filteredRadios.length) ? startIndex + _itemsPerPage : _filteredRadios.length;
+    final pageRadios = (startIndex < _filteredRadios.length) ? _filteredRadios.sublist(startIndex, endIndex) : <RadioModel>[];
 
     return Scaffold(
       body: SafeArea(
@@ -361,21 +377,90 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
               ),
 
-              // Radio List
+              // Radio List Page Slice
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: AppTokens.padMd),
                 sliver: SliverList(
                   delegate: SliverChildBuilderDelegate(
                     (context, index) {
-                      final radio = _filteredRadios[index];
+                      final radio = pageRadios[index];
                       return RadioCard(radio: radio);
                     },
-                    childCount: _filteredRadios.length,
+                    childCount: pageRadios.length,
                   ),
                 ),
               ),
 
-              // Bottom Scroll Spacing
+              // Pagination Controls
+              if (totalPages > 1)
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.symmetric(horizontal: AppTokens.padMd, vertical: 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: isDark ? AppColors.racingGreenDeepest.withOpacity(0.9) : AppColors.lightSurface.withOpacity(0.9),
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: AppColors.wineRedAccent.withOpacity(0.4),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: safePage > 1
+                              ? () {
+                                  setState(() {
+                                    _currentPage = safePage - 1;
+                                  });
+                                  widget.scrollController?.animateTo(
+                                    320,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeOut,
+                                  );
+                                }
+                              : null,
+                          icon: const Icon(Icons.arrow_back_ios_rounded, size: 14),
+                          label: const Text('Önceki'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.racingGreenPrimary,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                        Text(
+                          'Sayfa $safePage / $totalPages',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
+                        ),
+                        ElevatedButton.icon(
+                          onPressed: safePage < totalPages
+                              ? () {
+                                  setState(() {
+                                    _currentPage = safePage + 1;
+                                  });
+                                  widget.scrollController?.animateTo(
+                                    320,
+                                    duration: const Duration(milliseconds: 300),
+                                    curve: Curves.easeOut,
+                                  );
+                                }
+                              : null,
+                          icon: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
+                          label: const Text('Sonraki'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.racingGreenPrimary,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+              // Bottom Scroll Spacing (170px) so Mini Player and Floating Navbar never cover content
               const SliverToBoxAdapter(
                 child: SizedBox(height: 170),
               ),

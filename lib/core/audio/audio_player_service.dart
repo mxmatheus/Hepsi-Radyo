@@ -58,8 +58,22 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
   Timer? _sleepTimer;
   Timer? _connectionTimeoutTimer;
 
-  AudioPlayerNotifier() : super(PlayerStateModel()) {
+  AudioPlayerNotifier() : super(_initialState()) {
     _initAudioService();
+  }
+
+  static PlayerStateModel _initialState() {
+    final lastRadio = HiveStorage.getLastPlayedRadio();
+    if (lastRadio != null) {
+      return PlayerStateModel(
+        currentRadio: lastRadio,
+        isPlaying: false,
+        isLoading: false,
+        songTitle: lastRadio.name,
+        artistName: lastRadio.city ?? 'Canlı Yayın',
+      );
+    }
+    return PlayerStateModel();
   }
 
   Future<void> _initAudioService() async {
@@ -94,6 +108,7 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
 
   Future<void> playRadio(RadioModel radio) async {
     _connectionTimeoutTimer?.cancel();
+    await HiveStorage.saveLastPlayedRadio(radio);
     state = state.copyWith(
       currentRadio: radio,
       isLoading: true,
