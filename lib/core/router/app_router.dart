@@ -109,6 +109,7 @@ class _MainNavigationShellState extends State<MainNavigationShell> {
                       FloatingPillNavbar(
                         currentIndex: _currentIndex,
                         onTap: _onNavTap,
+                        isCollapsed: _isScrolling,
                       ),
                     ],
                   ),

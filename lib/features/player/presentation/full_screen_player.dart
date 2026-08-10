@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../../core/audio/audio_player_service.dart';
+import '../../../core/providers/favorites_provider.dart';
 import '../../../core/storage/hive_storage.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
@@ -78,6 +79,7 @@ class _FullScreenPlayerState extends ConsumerState<FullScreenPlayer> {
 
     if (radio == null) return const SizedBox.shrink();
 
+    final isFav = ref.watch(favoritesProvider).contains(radio.id);
     final similarRadios = _getSimilarRadios(radio);
     final displayArt = playerState.albumArtUrl ?? radio.corsSafeFavicon;
     final rawSongTitle = playerState.songTitle;
@@ -101,16 +103,17 @@ class _FullScreenPlayerState extends ConsumerState<FullScreenPlayer> {
           ),
         ),
         child: SafeArea(
+          bottom: false,
           child: Column(
             children: [
               // Header Top Bar
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppTokens.padMd, vertical: 8),
+                padding: const EdgeInsets.fromLTRB(AppTokens.padMd, 12, AppTokens.padMd, 8),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     IconButton(
-                      icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 32, color: Colors.white),
+                      icon: const Icon(Icons.keyboard_arrow_down_rounded, size: 34, color: Colors.white),
                       onPressed: () => Navigator.pop(context),
                     ),
                     Column(
@@ -136,11 +139,8 @@ class _FullScreenPlayerState extends ConsumerState<FullScreenPlayer> {
                         isFav ? Icons.favorite_rounded : Icons.favorite_border_rounded,
                         color: isFav ? AppColors.wineRedAccent : Colors.white,
                       ),
-                      onPressed: () async {
-                        await HiveStorage.toggleFavorite(radio.id);
-                        setState(() {
-                          isFav = !isFav;
-                        });
+                      onPressed: () {
+                        ref.read(favoritesProvider.notifier).toggleFavorite(radio.id);
                       },
                     ),
                   ],

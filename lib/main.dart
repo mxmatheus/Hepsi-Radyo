@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'core/network/supabase_client.dart';
-import 'core/router/app_router.dart';
 import 'core/services/push_notification_service.dart';
 import 'core/storage/hive_storage.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_provider.dart';
 import 'features/splash/presentation/splash_screen.dart';
 
 void main() async {
@@ -22,21 +22,12 @@ void main() async {
   runApp(const ProviderScope(child: HepsiRadyoApp()));
 }
 
-class HepsiRadyoApp extends StatelessWidget {
+class HepsiRadyoApp extends ConsumerWidget {
   const HepsiRadyoApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final themeModeStr = HiveStorage.getThemeMode();
-
-    ThemeMode mode;
-    if (themeModeStr == 'dark') {
-      mode = ThemeMode.dark;
-    } else if (themeModeStr == 'light') {
-      mode = ThemeMode.light;
-    } else {
-      mode = ThemeMode.system;
-    }
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mode = ref.watch(appThemeProvider);
 
     return MaterialApp(
       title: 'HepsiRadyo',

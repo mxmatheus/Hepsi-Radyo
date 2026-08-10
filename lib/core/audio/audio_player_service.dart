@@ -244,6 +244,7 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
           songTitle: displayTitle,
           artistName: artist ?? 'Canlı Yayın',
           albumArtUrl: albumArt,
+          clearAlbumArt: (albumArt == null || albumArt.isEmpty),
         );
         _audioHandler?.updateMetadataTitle(displayTitle, artist ?? 'Canlı Yayın');
       }

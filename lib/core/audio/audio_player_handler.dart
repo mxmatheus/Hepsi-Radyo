@@ -104,5 +104,10 @@ class HepsiRadyoAudioHandler extends BaseAudioHandler with SeekHandler {
     ));
   }
 
+  @override
+  Future<void> onTaskRemoved() async {
+    await stop();
+  }
+
   AudioPlayer get player => _player;
 }

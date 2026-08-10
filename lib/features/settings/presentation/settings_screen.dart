@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/storage/hive_storage.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_tokens.dart';
+import '../../../core/theme/theme_provider.dart';
 import '../../../shared/widgets/glass_container.dart';
 import '../../admin/presentation/admin_login_screen.dart';
 import '../../badges/presentation/badges_screen.dart';
@@ -94,19 +95,17 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ],
                   ),
                   DropdownButton<String>(
-                    value: currentTheme,
+                    value: HiveStorage.getThemeMode(),
                     underline: const SizedBox(),
                     items: const [
                       DropdownMenuItem(value: 'system', child: Text('Sistem Teması')),
                       DropdownMenuItem(value: 'dark', child: Text('Koyu Mod')),
                       DropdownMenuItem(value: 'light', child: Text('Açık Mod')),
                     ],
-                    onChanged: (val) async {
+                    onChanged: (val) {
                       if (val != null) {
-                        await HiveStorage.setThemeMode(val);
-                        setState(() {
-                          currentTheme = val;
-                        });
+                        ref.read(appThemeProvider.notifier).setThemeMode(val);
+                        setState(() {});
                       }
                     },
                   ),

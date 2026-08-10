@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import '../../core/audio/audio_player_service.dart';
+import '../../core/providers/favorites_provider.dart';
 import '../../core/storage/hive_storage.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_tokens.dart';
@@ -24,14 +25,6 @@ class RadioCard extends ConsumerStatefulWidget {
 }
 
 class _RadioCardState extends ConsumerState<RadioCard> {
-  late bool isFav;
-
-  @override
-  void initState() {
-    super.initState();
-    isFav = HiveStorage.isFavorite(widget.radio.id);
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -39,6 +32,8 @@ class _RadioCardState extends ConsumerState<RadioCard> {
     final isCurrentRadio = playerState.currentRadio?.id == widget.radio.id;
     final isPlaying = isCurrentRadio && playerState.isPlaying;
     final logoUrl = widget.radio.corsSafeFavicon;
+    final favorites = ref.watch(favoritesProvider);
+    final isFav = favorites.contains(widget.radio.id);
 
     return GlassContainer(
       margin: const EdgeInsets.only(bottom: AppTokens.padSm),
@@ -142,11 +137,8 @@ class _RadioCardState extends ConsumerState<RadioCard> {
 
           // Favorite Heart Button
           IconButton(
-            onPressed: () async {
-              await HiveStorage.toggleFavorite(widget.radio.id);
-              setState(() {
-                isFav = !isFav;
-              });
+            onPressed: () {
+              ref.read(favoritesProvider.notifier).toggleFavorite(widget.radio.id);
             },
             icon: Icon(
               isFav ? Icons.favorite_rounded : Icons.favorite_outline_rounded,
