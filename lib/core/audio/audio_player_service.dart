@@ -123,14 +123,16 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
 
   Future<void> playRadio(RadioModel radio) async {
     _connectionTimeoutTimer?.cancel();
+    _metadataTimer?.cancel();
     await HiveStorage.saveLastPlayedRadio(radio);
     state = state.copyWith(
       currentRadio: radio,
       isLoading: true,
       songTitle: radio.name,
-      artistName: 'Canlı Yayın',
+      artistName: radio.city ?? 'Canlı Yayın',
       clearAlbumArt: true,
     );
+    _audioHandler?.updateMetadataTitle(radio.name, radio.city ?? 'Canlı Yayın');
 
     _connectionTimeoutTimer = Timer(const Duration(seconds: 8), () {
       if (mounted && state.isLoading && !state.isPlaying) {
@@ -235,6 +237,7 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
   }
 
   Future<void> _fetchMetadata(RadioModel radio) async {
+    if (state.currentRadio?.id != radio.id) return;
     try {
       Map<String, dynamic>? data;
 
@@ -257,6 +260,9 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
           data = jsonDecode(response.body) as Map<String, dynamic>;
         }
       }
+
+      // Check if user changed radio station during async network call
+      if (state.currentRadio?.id != radio.id) return;
 
       if (data != null && data['supported'] == true) {
         final rawTitle = _cleanMojibake(data['raw_title']?.toString());
@@ -283,6 +289,9 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
         if (queryForArt.isNotEmpty && queryForArt.length > 3) {
           albumArt = await _fetchiTunesArtwork(queryForArt);
         }
+
+        // Final check before committing state update
+        if (state.currentRadio?.id != radio.id) return;
 
         state = state.copyWith(
           songTitle: displayTitle,
