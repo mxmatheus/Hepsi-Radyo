@@ -86,6 +86,14 @@ class RadioModel {
     } else if (json['tags'] is String && (json['tags'] as String).isNotEmpty) {
       tagsList = (json['tags'] as String).split(',').map((e) => e.trim()).toList();
     }
+    if (tagsList.isEmpty) {
+      for (final key in ['tags__001', 'tags__002', 'tags__003', 'tags__004', 'tags__005']) {
+        final val = json[key]?.toString().trim();
+        if (val != null && val.isNotEmpty) {
+          tagsList.add(val);
+        }
+      }
+    }
 
     final rawFavicon = (json['favicon_url'] != null && json['favicon_url'].toString().startsWith('http'))
         ? json['favicon_url']
