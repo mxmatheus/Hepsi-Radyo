@@ -1,27 +1,137 @@
 import 'package:flutter/material.dart';
+import '../../../core/storage/hive_storage.dart';
 import '../../../core/theme/app_tokens.dart';
-import '../../../shared/models/category_model.dart';
+import '../../../shared/models/radio_model.dart';
 import '../../../shared/widgets/glass_container.dart';
 import 'category_detail_screen.dart';
+
+class CategoryConfig {
+  final String id;
+  final String name;
+  final IconData icon;
+  final String color;
+  final List<String> keywords;
+
+  const CategoryConfig({
+    required this.id,
+    required this.name,
+    required this.icon,
+    required this.color,
+    required this.keywords,
+  });
+}
+
+const List<CategoryConfig> appCategories = [
+  CategoryConfig(
+    id: 'pop',
+    name: 'Pop Müzik',
+    icon: Icons.music_note_rounded,
+    color: '#9333EA',
+    keywords: ['pop', 'türkçe pop', 'hit', 'yabancı pop'],
+  ),
+  CategoryConfig(
+    id: 'arabesk',
+    name: 'Arabesk & Fantazi',
+    icon: Icons.favorite_rounded,
+    color: '#DC2626',
+    keywords: ['arabesk', 'damar', 'fantazi', 'arabic'],
+  ),
+  CategoryConfig(
+    id: 'halk',
+    name: 'Halk Müziği & Türkü',
+    icon: Icons.landscape_rounded,
+    color: '#D97706',
+    keywords: ['halk müziği', 'thm', 'türkü', 'anadolu', 'dersim', 'özgün müzik'],
+  ),
+  CategoryConfig(
+    id: 'nostalji',
+    name: 'Nostalji & 90\'lar',
+    icon: Icons.radio_rounded,
+    color: '#059669',
+    keywords: ['nostalji', 'retro', '90s', '80s', '70s', '90lar', '70ler', '80ler', '45\'lik', 'nostalgic'],
+  ),
+  CategoryConfig(
+    id: 'haber',
+    name: 'Haber & Konuşma',
+    icon: Icons.newspaper_rounded,
+    color: '#1E3A8A',
+    keywords: ['haber', 'sohbet', 'haberler', 'local haber'],
+  ),
+  CategoryConfig(
+    id: 'dini',
+    name: 'İslami & Dini',
+    icon: Icons.mosque_rounded,
+    color: '#0D9488',
+    keywords: ['islami', 'dini', 'ilahi', 'kur’an', 'kuran', 'religion', 'islam'],
+  ),
+  CategoryConfig(
+    id: 'rock',
+    name: 'Rock & Metal',
+    icon: Icons.electric_bolt_rounded,
+    color: '#E11D48',
+    keywords: ['rock', 'anadolu rock', 'pop rock', 'metal', 'hard rock', 'heavy metal', 'alternatif rock'],
+  ),
+  CategoryConfig(
+    id: 'elektronik',
+    name: 'Elektronik & Dans',
+    icon: Icons.graphic_eq_rounded,
+    color: '#7C3AED',
+    keywords: ['elektronik', 'dans', 'house', 'deep house', 'edm', 'trance', 'techno', 'phonk', 'lounge', 'chillout', 'club'],
+  ),
+  CategoryConfig(
+    id: 'caz',
+    name: 'Caz & Klasik',
+    icon: Icons.piano_rounded,
+    color: '#4B5563',
+    keywords: ['caz', 'jazz', 'klasik', 'klasik müzik', 'smoothjazz', 'ambient'],
+  ),
+  CategoryConfig(
+    id: 'spor',
+    name: 'Spor & Trafik',
+    icon: Icons.sports_soccer_rounded,
+    color: '#2563EB',
+    keywords: ['spor', 'sports', 'traffic'],
+  ),
+  CategoryConfig(
+    id: 'cocuk',
+    name: 'Çocuk & Aile',
+    icon: Icons.child_care_rounded,
+    color: '#F59E0B',
+    keywords: ['çocuk'],
+  ),
+  CategoryConfig(
+    id: 'yerel',
+    name: 'Yerel Radyolar',
+    icon: Icons.location_on_rounded,
+    color: '#0B3D2E',
+    keywords: [],
+  ),
+];
 
 class CategoriesScreen extends StatelessWidget {
   final ScrollController? scrollController;
   const CategoriesScreen({super.key, this.scrollController});
 
+  int _countRadiosForCategory(CategoryConfig config, List<RadioModel> allRadios) {
+    if (config.id == 'yerel') {
+      return allRadios.where((r) =>
+        r.city != null &&
+        r.city != 'Genel' &&
+        r.city != 'Türkiye' &&
+        r.city != 'İstanbul' &&
+        r.city != 'Ankara'
+      ).length;
+    }
+    return allRadios.where((r) {
+      return r.tags.any((t) =>
+        config.keywords.any((kw) => t.toLowerCase().contains(kw.toLowerCase()))
+      );
+    }).length;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final categories = [
-      CategoryModel(id: '1', name: 'Haber & Konuşma', icon: 'newspaper', color: '#1E3A8A', radioCount: 18),
-      CategoryModel(id: '2', name: 'Pop Müzik', icon: 'music_note', color: '#9333EA', radioCount: 45),
-      CategoryModel(id: '3', name: 'Arabesk & Fantazi', icon: 'favorite', color: '#DC2626', radioCount: 32),
-      CategoryModel(id: '4', name: 'Halk Müziği & Türkü', icon: 'landscape', color: '#D97706', radioCount: 28),
-      CategoryModel(id: '5', name: 'Nostalji & 90\'lar', icon: 'radio', color: '#059669', radioCount: 20),
-      CategoryModel(id: '6', name: 'Dini & İlahi', icon: 'mosque', color: '#0D9488', radioCount: 15),
-      CategoryModel(id: '7', name: 'Spor', icon: 'sports_soccer', color: '#2563EB', radioCount: 12),
-      CategoryModel(id: '8', name: 'Yabancı & Pop', icon: 'public', color: '#7C3AED', radioCount: 38),
-      CategoryModel(id: '9', name: 'Caz & Klasik', icon: 'piano', color: '#4B5563', radioCount: 14),
-      CategoryModel(id: '10', name: 'Yerel Radyolar', icon: 'location_on', color: '#0B3D2E', radioCount: 65),
-    ];
+    final allRadios = HiveStorage.getCachedRadios();
 
     return Scaffold(
       appBar: AppBar(
@@ -36,10 +146,11 @@ class CategoriesScreen extends StatelessWidget {
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
         ),
-        itemCount: categories.length,
+        itemCount: appCategories.length,
         itemBuilder: (context, index) {
-          final cat = categories[index];
+          final cat = appCategories[index];
           final colorVal = Color(int.parse(cat.color.replaceAll('#', '0xFF')));
+          final radioCount = _countRadiosForCategory(cat, allRadios);
 
           return GlassContainer(
             padding: const EdgeInsets.all(AppTokens.padMd),
@@ -49,7 +160,7 @@ class CategoriesScreen extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => CategoryDetailScreen(categoryName: cat.name),
+                  builder: (_) => CategoryDetailScreen(categoryConfig: cat),
                 ),
               );
             },
@@ -63,7 +174,7 @@ class CategoriesScreen extends StatelessWidget {
                     color: colorVal,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(Icons.radio_rounded, color: Colors.white, size: 22),
+                  child: Icon(cat.icon, color: Colors.white, size: 22),
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -76,7 +187,7 @@ class CategoriesScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 2),
                     Text(
-                      '${cat.radioCount} Radyo',
+                      '$radioCount Radyo',
                       style: const TextStyle(fontSize: 12, color: Colors.grey),
                     ),
                   ],
