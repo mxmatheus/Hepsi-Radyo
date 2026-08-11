@@ -194,14 +194,23 @@ class AudioPlayerNotifier extends StateNotifier<PlayerStateModel> {
   }
 
   Future<void> togglePlayPause() async {
-    if (_audioHandler == null) return;
     if (state.isPlaying) {
-      await _audioHandler!.pause();
+      if (_audioHandler != null) {
+        await _audioHandler!.pause();
+      }
       state = state.copyWith(isPlaying: false, isLoading: false);
     } else {
-      if (state.currentRadio != null) {
-        await _audioHandler!.play();
-        state = state.copyWith(isPlaying: true, isLoading: false);
+      final radio = state.currentRadio;
+      if (radio != null) {
+        final currentUrl = _audioHandler?.mediaItem.value?.id;
+        if (currentUrl == null || currentUrl.isEmpty || currentUrl != radio.streamUrl) {
+          await playRadio(radio);
+        } else {
+          if (_audioHandler != null) {
+            await _audioHandler!.play();
+          }
+          state = state.copyWith(isPlaying: true, isLoading: false);
+        }
       }
     }
   }
