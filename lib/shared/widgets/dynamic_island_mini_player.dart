@@ -22,40 +22,44 @@ class DynamicIslandMiniPlayer extends ConsumerWidget {
     final logoUrl = playerState.albumArtUrl ?? radio.corsSafeFavicon;
     final songOrCity = playerState.songTitle ?? radio.city ?? 'Canlı Yayın';
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppTokens.padMd, vertical: AppTokens.padSm),
-      child: GlassContainer(
-        borderRadius: AppTokens.radiusPill,
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-        color: AppColors.racingGreenDark.withOpacity(0.92),
-        onTap: () {
-          showModalBottomSheet(
-            context: context,
-            isScrollControlled: true,
-            backgroundColor: Colors.transparent,
-            builder: (_) => const FullScreenPlayer(),
-          );
-        },
-        child: Row(
-          children: [
-            // Radio Favicon / Album Artwork
-            Hero(
-              tag: 'radio_logo_${radio.id}',
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(20),
-                child: SizedBox(
-                  width: 44,
-                  height: 44,
-                  child: logoUrl != null && logoUrl.isNotEmpty
-                      ? CachedNetworkImage(
-                          imageUrl: logoUrl,
-                          fit: BoxFit.cover,
-                          errorWidget: (_, __, ___) => _buildFallbackLogo(radio.name),
-                        )
-                      : _buildFallbackLogo(radio.name),
+    return RepaintBoundary(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppTokens.padMd, vertical: AppTokens.padSm),
+        child: GlassContainer(
+          useBlur: true,
+          borderRadius: AppTokens.radiusPill,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          color: AppColors.racingGreenDark.withOpacity(0.92),
+          onTap: () {
+            showModalBottomSheet(
+              context: context,
+              isScrollControlled: true,
+              backgroundColor: Colors.transparent,
+              builder: (_) => const FullScreenPlayer(),
+            );
+          },
+          child: Row(
+            children: [
+              // Radio Favicon / Album Artwork
+              Hero(
+                tag: 'radio_logo_${radio.id}',
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(20),
+                  child: SizedBox(
+                    width: 44,
+                    height: 44,
+                    child: logoUrl != null && logoUrl.isNotEmpty
+                        ? CachedNetworkImage(
+                            imageUrl: logoUrl,
+                            memCacheWidth: 100,
+                            memCacheHeight: 100,
+                            fit: BoxFit.cover,
+                            errorWidget: (_, __, ___) => _buildFallbackLogo(radio.name),
+                          )
+                        : _buildFallbackLogo(radio.name),
+                  ),
                 ),
               ),
-            ),
             const SizedBox(width: 12),
 
             // Radio & Marquee Song Info
@@ -137,7 +141,8 @@ class DynamicIslandMiniPlayer extends ConsumerWidget {
           ],
         ),
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildFallbackLogo(String name) {

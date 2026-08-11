@@ -13,6 +13,7 @@ class GlassContainer extends StatelessWidget {
   final Color? color;
   final Border? border;
   final VoidCallback? onTap;
+  final bool useBlur;
 
   const GlassContainer({
     super.key,
@@ -25,6 +26,7 @@ class GlassContainer extends StatelessWidget {
     this.color,
     this.border,
     this.onTap,
+    this.useBlur = false,
   });
 
   @override
@@ -56,6 +58,10 @@ class GlassContainer extends StatelessWidget {
         onTap: onTap,
         child: content,
       );
+    }
+
+    if (!useBlur) {
+      return content;
     }
 
     return ClipRRect(

@@ -35,37 +35,40 @@ class _RadioCardState extends ConsumerState<RadioCard> {
     final favorites = ref.watch(favoritesProvider);
     final isFav = favorites.contains(widget.radio.id);
 
-    return GlassContainer(
-      margin: const EdgeInsets.only(bottom: AppTokens.padSm),
-      padding: const EdgeInsets.all(12),
-      borderRadius: AppTokens.radiusMd,
-      color: isCurrentRadio
-          ? (isDark ? AppColors.racingGreenDark : AppColors.lightCard)
-          : null,
-      border: isCurrentRadio
-          ? Border.all(color: AppColors.wineRedAccent, width: 1.5)
-          : null,
-      onTap: () {
-        ref.read(playerProvider.notifier).playRadio(widget.radio);
-        widget.onTap?.call();
-      },
-      child: Row(
-        children: [
-          // Logo Avatar
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: SizedBox(
-              width: 52,
-              height: 52,
-              child: logoUrl != null && logoUrl.isNotEmpty
-                  ? CachedNetworkImage(
-                      imageUrl: logoUrl,
-                      fit: BoxFit.cover,
-                      errorWidget: (_, __, ___) => _buildAvatarFallback(),
-                    )
-                  : _buildAvatarFallback(),
+    return RepaintBoundary(
+      child: GlassContainer(
+        margin: const EdgeInsets.only(bottom: AppTokens.padSm),
+        padding: const EdgeInsets.all(12),
+        borderRadius: AppTokens.radiusMd,
+        color: isCurrentRadio
+            ? (isDark ? AppColors.racingGreenDark : AppColors.lightCard)
+            : null,
+        border: isCurrentRadio
+            ? Border.all(color: AppColors.wineRedAccent, width: 1.5)
+            : null,
+        onTap: () {
+          ref.read(playerProvider.notifier).playRadio(widget.radio);
+          widget.onTap?.call();
+        },
+        child: Row(
+          children: [
+            // Logo Avatar
+            ClipRRect(
+              borderRadius: BorderRadius.circular(12),
+              child: SizedBox(
+                width: 52,
+                height: 52,
+                child: logoUrl != null && logoUrl.isNotEmpty
+                    ? CachedNetworkImage(
+                        imageUrl: logoUrl,
+                        memCacheWidth: 120,
+                        memCacheHeight: 120,
+                        fit: BoxFit.cover,
+                        errorWidget: (_, __, ___) => _buildAvatarFallback(),
+                      )
+                    : _buildAvatarFallback(),
+              ),
             ),
-          ),
           const SizedBox(width: 14),
 
           // Title & Tags
@@ -163,7 +166,8 @@ class _RadioCardState extends ConsumerState<RadioCard> {
           ),
         ],
       ),
-    );
+    ),
+  );
   }
 
   Widget _buildAvatarFallback() {

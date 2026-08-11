@@ -31,6 +31,7 @@ class FloatingPillNavbar extends StatelessWidget {
       duration: AppTokens.animFast,
       margin: const EdgeInsets.fromLTRB(AppTokens.padLg, 0, AppTokens.padLg, AppTokens.padMd),
       child: GlassContainer(
+        useBlur: true,
         borderRadius: AppTokens.radiusPill,
         padding: EdgeInsets.symmetric(horizontal: isCollapsed ? 12 : 8, vertical: 8),
         color: isDark

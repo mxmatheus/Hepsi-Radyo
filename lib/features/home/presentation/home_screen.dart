@@ -232,32 +232,34 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
               if (_searchQuery.isEmpty) ...[
                 // Sponsor / Highlight Banners Carousel
                 SliverToBoxAdapter(
-                  child: Container(
-                    height: 160,
-                    margin: const EdgeInsets.symmetric(vertical: 12),
-                    child: PageView.builder(
-                      controller: _bannerController,
-                      itemCount: _sampleBanners.length,
-                      onPageChanged: (index) {
-                        setState(() {
-                          _currentBannerIndex = index;
-                        });
-                      },
-                      itemBuilder: (context, index) {
-                        final banner = _sampleBanners[index];
-                        return Container(
-                          margin: const EdgeInsets.symmetric(horizontal: AppTokens.padMd),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(AppTokens.radiusLg),
-                            child: Stack(
-                              children: [
-                                Positioned.fill(
-                                  child: CachedNetworkImage(
-                                    imageUrl: banner.imageUrl,
-                                    fit: BoxFit.cover,
-                                    errorWidget: (_, __, ___) => Container(color: AppColors.racingGreenPrimary),
+                  child: RepaintBoundary(
+                    child: Container(
+                      height: 160,
+                      margin: const EdgeInsets.symmetric(vertical: 12),
+                      child: PageView.builder(
+                        controller: _bannerController,
+                        itemCount: _sampleBanners.length,
+                        onPageChanged: (index) {
+                          setState(() {
+                            _currentBannerIndex = index;
+                          });
+                        },
+                        itemBuilder: (context, index) {
+                          final banner = _sampleBanners[index];
+                          return Container(
+                            margin: const EdgeInsets.symmetric(horizontal: AppTokens.padMd),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(AppTokens.radiusLg),
+                              child: Stack(
+                                children: [
+                                  Positioned.fill(
+                                    child: CachedNetworkImage(
+                                      imageUrl: banner.imageUrl,
+                                      memCacheWidth: 600,
+                                      fit: BoxFit.cover,
+                                      errorWidget: (_, __, ___) => Container(color: AppColors.racingGreenPrimary),
+                                    ),
                                   ),
-                                ),
                                 Positioned.fill(
                                   child: Container(
                                     padding: const EdgeInsets.all(AppTokens.padLg),
@@ -292,6 +294,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     ),
                   ),
                 ),
+              ),
 
                 // Recently Played Section
                 if (_recentlyPlayed.isNotEmpty) ...[
